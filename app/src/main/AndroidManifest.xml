@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,6 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LessonNotification"
         tools:targetApi="31">
+        <!--Получатель уведомлений-->
+        <receiver
+            android:name=".Notifications"
+            android:enabled="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

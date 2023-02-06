@@ -1,10 +1,6 @@
 package com.example.lesson_notification
 
-import android.app.DatePickerDialog
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.TimePickerDialog
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -14,13 +10,7 @@ import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.core.app.NotificationCompat
 import com.example.lesson_notification.databinding.ActivityMainBinding
-import java.util.Calendar
-
-// ID уведомления, может быть неизменяемым когда нет надобности переделывать всё уведомление
-const val notificationID = 1
-
-// ID канала, который посылает уведомления
-const val channelID = "channel1"
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -33,15 +23,59 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         // Кнопка создания простого уведомления
         binding.buttonShowNotification.setOnClickListener {
-            createNotificationChannel()
-            showNotification()
+            createNotificationChannelForSimpleNotification()
+            showSimpleNotification()
         }
         // Кнопка создания уведомления по расписанию
         binding.buttonScheduleNotification.setOnClickListener {
             createDatePicker(calendar)
+            createNotificationChannelForNotificationAtDate()
         }
-
         setContentView(binding.root)
+    }
+
+    // Функция создания канала уведомлений для простого уведомления
+    private fun createNotificationChannelForSimpleNotification() {
+        // Класс для уведомления пользователя о событиях, которые происходят
+        val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        // Имя канала
+        val name = "channelID1"
+        // Описание канала
+        val desc = "A Description of the Channel"
+        // Степень важности уведомления
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        // Объявление канала уведомлений
+        val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel(name, name, importance)
+        } else {
+            TODO("VERSION.SDK_INT < O")
+        }
+        // Присвоение каналу его описания
+        channel.description = desc
+        // Создание канала уведомлений, на который можно отправлять уведомления
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    // Функция создания и показа простого уведомления
+    private fun showSimpleNotification() {
+        // Создание намерения входа в приложение
+        val intent1 = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        // Создание PendingIntent для входа в приложение
+        val pendingIntent =
+            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_IMMUTABLE)
+        // Создание уведомления
+        val notification = NotificationCompat.Builder(this, "channelID1")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Заголовок1") // Заголовок уведомления
+            .setContentText("Текст1") // Текст уведомления
+            .setContentIntent(pendingIntent) // Действие при нажатии на уведомление
+            .setAutoCancel(true) // Закрытие уведомления при нажатии на него
+            .build()
+        // Отправка уведомления на канал
+        val manager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(1, notification)
     }
 
     // Функция выставления даты уведомления
@@ -65,6 +99,7 @@ class MainActivity : AppCompatActivity() {
             { _: TimePicker, mHour: Int, mMinute: Int ->
                 calendar.set(Calendar.HOUR_OF_DAY, mHour)
                 calendar.set(Calendar.MINUTE, mMinute)
+                createNotificationAtDate(calendar)
             },
             calendar[Calendar.HOUR_OF_DAY],
             calendar[Calendar.MINUTE],
@@ -72,47 +107,47 @@ class MainActivity : AppCompatActivity() {
         ).show()
     }
 
-    // Функция создания канала уведомлений
-    private fun createNotificationChannel() {
+    // Функция создания канала уведомлений для уведомления на дату
+    private fun createNotificationChannelForNotificationAtDate() {
         // Класс для уведомления пользователя о событиях, которые происходят
         val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         // Имя канала
-        val name = channelID
+        val name = "channelID2"
         // Описание канала
         val desc = "A Description of the Channel"
         // Степень важности уведомления
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val importance = NotificationManager.IMPORTANCE_HIGH
         // Объявление канала уведомлений
-        val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel(channelID, name, importance)
+        val channel1 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel(name, name, importance)
         } else {
             TODO("VERSION.SDK_INT < O")
         }
         // Присвоение каналу его описания
-        channel.description = desc
+        channel1.description = desc
         // Создание канала уведомлений, на который можно отправлять уведомления
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(channel1)
     }
 
-    // Функция создания и показа уведомления
-    private fun showNotification() {
-        // Создание намерения входа в приложение
-        val intent1 = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        // Создание PendingIntent для входа в приложение
-        val pendingIntent =
-            PendingIntent.getActivity(this, 0, intent1, PendingIntent.FLAG_IMMUTABLE)
+    // Функция создания уведомления на дату
+    private fun createNotificationAtDate(calendar: Calendar) {
         // Создание уведомления
-        val notification = NotificationCompat.Builder(this, channelID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Заголовок") // Заголовок уведомления
-            .setContentText("Текст") // Текст уведомления
-            .setContentIntent(pendingIntent) // Действие при нажатии на уведомление
-            .setAutoCancel(true) // Закрытие уведомления при нажатии на него
-            .build()
-        // Отправка уведомления на канал
-        val manager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(notificationID, notification)
+        val intent = Intent(this, Notifications::class.java)
+        // Класс предоставляет доступ к службам системных сигналов
+        val alarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
+        // Создание широковещательного сигнала для отправки уведомления
+        val pendingIntent =
+            PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        // Запись даты когда нужно отправить уведомлние
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            pendingIntent
+        )
     }
 }
