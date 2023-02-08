@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.DatePicker
 import android.widget.TimePicker
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.lesson_notification.databinding.ActivityMainBinding
 import java.util.*
@@ -23,18 +24,25 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         // Кнопка создания простого уведомления
         binding.buttonShowNotification.setOnClickListener {
-            createNotificationChannelForSimpleNotification()
-            showSimpleNotification()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createNotificationChannelForSimpleNotification()
+                showSimpleNotification()
+            } else
+                showSimpleNotification()
         }
         // Кнопка создания уведомления по расписанию
         binding.buttonScheduleNotification.setOnClickListener {
-            createDatePicker(calendar)
-            createNotificationChannelForNotificationAtDate()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createDatePicker(calendar)
+                createNotificationChannelForNotificationAtDate()
+            } else
+                createDatePicker(calendar)
         }
         setContentView(binding.root)
     }
 
     // Функция создания канала уведомлений для простого уведомления
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannelForSimpleNotification() {
         // Класс для уведомления пользователя о событиях, которые происходят
         val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -45,11 +53,7 @@ class MainActivity : AppCompatActivity() {
         // Степень важности уведомления
         val importance = NotificationManager.IMPORTANCE_DEFAULT
         // Объявление канала уведомлений
-        val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel(name, name, importance)
-        } else {
-            TODO("VERSION.SDK_INT < O")
-        }
+        val channel = NotificationChannel(name, name, importance)
         // Присвоение каналу его описания
         channel.description = desc
         // Создание канала уведомлений, на который можно отправлять уведомления
@@ -108,6 +112,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Функция создания канала уведомлений для уведомления на дату
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannelForNotificationAtDate() {
         // Класс для уведомления пользователя о событиях, которые происходят
         val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -118,11 +123,7 @@ class MainActivity : AppCompatActivity() {
         // Степень важности уведомления
         val importance = NotificationManager.IMPORTANCE_HIGH
         // Объявление канала уведомлений
-        val channel1 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel(name, name, importance)
-        } else {
-            TODO("VERSION.SDK_INT < O")
-        }
+        val channel1 = NotificationChannel(name, name, importance)
         // Присвоение каналу его описания
         channel1.description = desc
         // Создание канала уведомлений, на который можно отправлять уведомления
