@@ -1,17 +1,23 @@
 package com.example.lesson_notification
 
-import android.app.*
-import android.content.Context
+import android.app.AlarmManager
+import android.app.DatePickerDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.example.lesson_notification.databinding.ActivityMainBinding
-import java.util.*
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -78,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             .setAutoCancel(true) // Закрытие уведомления при нажатии на него
             .build()
         // Отправка уведомления на канал
-        val manager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(1, notification)
     }
 
@@ -145,10 +151,25 @@ class MainActivity : AppCompatActivity() {
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
         // Запись даты когда нужно отправить уведомлние
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            if (alarmManager.canScheduleExactAlarms())
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.timeInMillis,
+                    pendingIntent
+                )
+            else {
+                // Открываем экран, где пользователь может выдать разрешение
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    data = "package:$packageName".toUri()
+                }
+                startActivity(intent)
+            }
+        else
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
     }
 }
